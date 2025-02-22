@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザーモデル
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  spotifyId     String?   @unique
+  accessToken   String?
+  refreshToken  String?
+  accounts      Account[]
+  sessions      Session[]
+  podcasts      PodcastHistory[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// OAuth アカウント情報
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// セッション情報
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ポッドキャストエピソード情報
+model PodcastEpisode {
+  id              String    @id
+  title           String
+  description     String?
+  transcript      String?
+  duration        Int?
+  releaseDate     DateTime?
+  spotifyUrl      String?
+  imageUrl        String?
+  showId          String?
+  showName        String?
+  histories       PodcastHistory[]
+  summaries       Summary[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// ポッドキャスト視聴履歴
+model PodcastHistory {
+  id              String    @id @default(cuid())
+  userId          String
+  episodeId       String
+  playedAt        DateTime  @default(now())
+  playDuration    Int?
+  progress        Float?
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episode         PodcastEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([episodeId])
+}
+
+// 要約情報
+model Summary {
+  id              String    @id @default(cuid())
+  episodeId       String
+  content         String
+  generatedAt     DateTime  @default(now())
+  episode         PodcastEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@index([episodeId])
+}
