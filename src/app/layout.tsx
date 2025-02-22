@@ -14,9 +14,9 @@ import AuthProvider from "@/components/AuthProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	title: "Podcast Summary - Spotifyポッドキャストの要約サービス",
-	description:
-		"Spotifyで聴いたポッドキャストを自動で要約し、効率的な情報収集をサポートします。",
+  title: "Podcast Summary - Spotifyポッドキャストの要約サービス",
+  description:
+    "Spotifyで聴いたポッドキャストを自動で要約し、効率的な情報収集をサポートします。",
 };
 
 /**
@@ -25,17 +25,17 @@ export const metadata: Metadata = {
  * @returns レイアウトのJSX要素
  */
 export default async function RootLayout({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	const session = await auth();
+  const session = await auth();
 
-	return (
-		<html lang="ja">
-			<body className={inter.className}>
-				<AuthProvider session={session}>{children}</AuthProvider>
-			</body>
-		</html>
-	);
+  return (
+    <html lang="ja">
+      <body className={inter.className}>
+        <AuthProvider session={session}>{children}</AuthProvider>
+      </body>
+    </html>
+  );
 }

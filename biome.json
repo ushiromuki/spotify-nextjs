@@ -1,0 +1,35 @@
+{
+  "files": {
+    "ignoreUnknown": false,
+    "ignore": [
+      "node_modules",
+      "next.config.ts",
+      "next-env.d.ts",
+      "wrangler.toml",
+      "wrangler.json",
+      ".wrangler",
+      ".next",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.node.json",
+      "tsconfig.app.json",
+      "tsconfig.base.json",
+      ".vercel",
+      ".pnpm-store",
+      "dist",
+      "build",
+      "public"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "useEditorconfig": true
+  }
+}

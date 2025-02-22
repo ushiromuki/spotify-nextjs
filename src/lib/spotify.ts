@@ -13,17 +13,17 @@ import SpotifyWebApi from "spotify-web-api-node";
  * @returns SpotifyWebApiのインスタンス
  */
 export const createSpotifyClient = (accessToken?: string) => {
-	const spotifyApi = new SpotifyWebApi({
-		clientId: process.env.SPOTIFY_CLIENT_ID,
-		clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-		redirectUri: process.env.SPOTIFY_REDIRECT_URI,
-	});
+  const spotifyApi = new SpotifyWebApi({
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    redirectUri: process.env.SPOTIFY_REDIRECT_URI,
+  });
 
-	if (accessToken) {
-		spotifyApi.setAccessToken(accessToken);
-	}
+  if (accessToken) {
+    spotifyApi.setAccessToken(accessToken);
+  }
 
-	return spotifyApi;
+  return spotifyApi;
 };
 
 /**
@@ -33,19 +33,19 @@ export const createSpotifyClient = (accessToken?: string) => {
  * @returns 最近再生したポッドキャストエピソードの配列
  */
 export const getRecentlyPlayedPodcasts = async (
-	spotifyApi: SpotifyWebApi,
-	limit = 50,
+  spotifyApi: SpotifyWebApi,
+  limit = 50,
 ) => {
-	const response = await spotifyApi.getMyRecentlyPlayedTracks({
-		limit,
-	});
+  const response = await spotifyApi.getMyRecentlyPlayedTracks({
+    limit,
+  });
 
-	// ポッドキャストエピソードのみをフィルタリング
-	const podcastEpisodes = response.body.items.filter(
-		(item) => item.track.type === "episode",
-	);
+  // ポッドキャストエピソードのみをフィルタリング
+  const podcastEpisodes = response.body.items.filter(
+    (item) => item.track.type === "episode",
+  );
 
-	return podcastEpisodes;
+  return podcastEpisodes;
 };
 
 /**
@@ -55,11 +55,11 @@ export const getRecentlyPlayedPodcasts = async (
  * @returns エピソードの詳細情報
  */
 export const getPodcastEpisode = async (
-	spotifyApi: SpotifyWebApi,
-	episodeId: string,
+  spotifyApi: SpotifyWebApi,
+  episodeId: string,
 ) => {
-	const response = await spotifyApi.getEpisode(episodeId);
-	return response.body;
+  const response = await spotifyApi.getEpisode(episodeId);
+  return response.body;
 };
 
 /**
@@ -68,16 +68,16 @@ export const getPodcastEpisode = async (
  * @returns 現在再生中のエピソード情報（再生中でない場合はnull）
  */
 export const getCurrentlyPlayingPodcast = async (spotifyApi: SpotifyWebApi) => {
-	try {
-		const response = await spotifyApi.getMyCurrentPlayingTrack();
+  try {
+    const response = await spotifyApi.getMyCurrentPlayingTrack();
 
-		if (response.body && response.body.item?.type === "episode") {
-			return response.body;
-		}
+    if (response.body && response.body.item?.type === "episode") {
+      return response.body;
+    }
 
-		return null;
-	} catch (error) {
-		console.error("Error getting currently playing track:", error);
-		return null;
-	}
+    return null;
+  } catch (error) {
+    console.error("Error getting currently playing track:", error);
+    return null;
+  }
 };

@@ -11,8 +11,8 @@ import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 
 interface AuthProviderProps {
-	children: React.ReactNode;
-	session: Session | null;
+  children: React.ReactNode;
+  session: Session | null;
 }
 
 /**
@@ -21,5 +21,5 @@ interface AuthProviderProps {
  * @returns プロバイダーのJSX要素
  */
 export default function AuthProvider({ children, session }: AuthProviderProps) {
-	return <SessionProvider session={session}>{children}</SessionProvider>;
+  return <SessionProvider session={session}>{children}</SessionProvider>;
 }
