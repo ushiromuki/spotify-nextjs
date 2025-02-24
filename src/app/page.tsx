@@ -1,3 +1,10 @@
+/**
+ * @fileoverview ルートページコンポーネント
+ */
+
+// Edge Runtimeの設定
+export const runtime = "edge";
+
 import Image from "next/image";
 
 export default function Home() {

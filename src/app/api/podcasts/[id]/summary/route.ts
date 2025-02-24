@@ -5,6 +5,9 @@
  * データベースに保存するAPIエンドポイントを実装します。
  */
 
+// Edge Runtimeの設定
+export const runtime = "edge";
+
 import { auth } from "@/auth";
 import { generatePodcastSummary, parseSummary } from "@/lib/gemini";
 import { prisma } from "@/lib/prisma";

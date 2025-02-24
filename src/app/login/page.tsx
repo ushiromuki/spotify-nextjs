@@ -5,6 +5,9 @@
  * ページコンポーネントを実装します。
  */
 
+// Edge Runtimeの設定
+export const runtime = "edge";
+
 import { auth } from "@/auth";
 import LoginButton from "@/components/LoginButton";
 import { redirect } from "next/navigation";

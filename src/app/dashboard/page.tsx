@@ -11,6 +11,9 @@ import { prisma } from "@/lib/prisma";
 import { createSpotifyClient } from "@/lib/spotify";
 import { redirect } from "next/navigation";
 
+// Edge Runtimeの設定
+export const runtime = "edge";
+
 /**
  * Spotifyエピソードの型定義
  */
