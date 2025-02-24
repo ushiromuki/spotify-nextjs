@@ -13,6 +13,14 @@ declare module "next-auth" {
     refreshToken?: string;
     expires?: number;
     error?: string;
+    user: {
+      id: string;
+    } & DefaultSession["user"];
+  }
+
+  interface User {
+    id: string;
+    spotifyId?: string;
   }
 }
 

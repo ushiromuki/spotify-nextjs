@@ -24,7 +24,7 @@ const scopes = [
   "streaming",
 ].join(" ");
 
-export const { auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     SpotifyProvider({
@@ -51,8 +51,8 @@ export const { auth, signIn, signOut } = NextAuth({
       });
 
       if (account) {
-        session.accessToken = account.access_token;
-        session.refreshToken = account.refresh_token;
+        session.accessToken = account.access_token ?? undefined;
+        session.refreshToken = account.refresh_token ?? undefined;
       }
 
       return session;

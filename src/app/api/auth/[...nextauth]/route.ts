@@ -6,6 +6,7 @@
  * セッション情報にSpotifyのアクセストークンを含めるようにカスタマイズしています。
  */
 
-import { auth } from "@/auth";
+import { handlers } from "@/auth";
 
-export const { GET, POST } = auth.handlers;
+// NextAuth v5の新しいエクスポート形式
+export const { GET, POST } = handlers;

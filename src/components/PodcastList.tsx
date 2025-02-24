@@ -8,19 +8,16 @@
 "use client";
 
 import { generatePodcastSummary } from "@/lib/gemini";
-import type { PodcastEpisode } from "@prisma/client";
+import type { PodcastWithPlayedAt, PodcastSummary } from "@/types/spotify";
 import Image from "next/image";
 import { useState } from "react";
 
+/**
+ * ポッドキャストリストのプロパティ型定義
+ */
 interface PodcastListProps {
-  podcasts: SpotifyApi.PlayHistoryObject[];
-  summaries: (PodcastEpisode & {
-    summaries: {
-      id: string;
-      content: string;
-      generatedAt: Date;
-    }[];
-  })[];
+  podcasts: PodcastWithPlayedAt[];
+  summaries: PodcastSummary[];
 }
 
 /**
@@ -52,9 +49,10 @@ export default function PodcastList({ podcasts, summaries }: PodcastListProps) {
 
   return (
     <div className="space-y-6">
-      {podcasts.map((podcast) => {
-        const episode = podcast.track;
-        const summary = summaries.find((s) => s.id === episode.id);
+      {podcasts.map((episode: PodcastWithPlayedAt) => {
+        const summary = summaries.find(
+          (s: PodcastSummary) => s.id === episode.id,
+        );
 
         return (
           <div
@@ -79,7 +77,7 @@ export default function PodcastList({ podcasts, summaries }: PodcastListProps) {
                     {episode.name}
                   </h2>
                   <p className="mt-1 text-sm text-gray-500">
-                    {new Date(podcast.played_at).toLocaleDateString("ja-JP", {
+                    {new Date(episode.played_at).toLocaleDateString("ja-JP", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",

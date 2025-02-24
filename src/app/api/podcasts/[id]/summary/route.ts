@@ -9,33 +9,27 @@ import { auth } from "@/auth";
 import { generatePodcastSummary, parseSummary } from "@/lib/gemini";
 import { prisma } from "@/lib/prisma";
 import { createSpotifyClient, getPodcastEpisode } from "@/lib/spotify";
-import { NextResponse } from "next/server";
 
 /**
  * ポッドキャスト要約生成API
  * @param request - リクエストオブジェクト
- * @param context - ルートパラメータを含むコンテキスト
  * @returns 要約データまたはエラーレスポンス
  */
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } },
-) {
+export async function POST(request: Request) {
   try {
     const session = await auth();
 
     if (!session?.accessToken) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    if (!params?.id) {
-      return NextResponse.json(
-        { error: "Invalid podcast ID" },
-        { status: 400 },
-      );
-    }
+    // URLからエピソードIDを取得
+    const url = new URL(request.url);
+    const id = url.pathname.split("/").pop();
 
-    const { id } = params;
+    if (!id) {
+      return Response.json({ error: "Invalid podcast ID" }, { status: 400 });
+    }
 
     // Spotifyクライアントの作成
     const spotifyApi = createSpotifyClient(session.accessToken);
@@ -44,7 +38,7 @@ export async function POST(
     const episode = await getPodcastEpisode(spotifyApi, id);
 
     if (!episode) {
-      return new NextResponse("Episode not found", { status: 404 });
+      return new Response("Episode not found", { status: 404 });
     }
 
     // 要約の生成
@@ -85,12 +79,9 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({ summary });
+    return Response.json({ summary });
   } catch (error) {
-    console.error(`[SUMMARY_API_ERROR] ID: ${params?.id}`, error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    console.error("[SUMMARY_API_ERROR]", error);
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }

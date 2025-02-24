@@ -8,8 +8,60 @@
 import { auth } from "@/auth";
 import PodcastList from "@/components/PodcastList";
 import { prisma } from "@/lib/prisma";
-import { createSpotifyClient, getRecentlyPlayedPodcasts } from "@/lib/spotify";
+import { createSpotifyClient } from "@/lib/spotify";
 import { redirect } from "next/navigation";
+
+/**
+ * Spotifyエピソードの型定義
+ */
+interface SpotifyEpisode {
+  type: "episode";
+  id: string;
+  name: string;
+  description: string;
+  duration_ms: number;
+  release_date: string;
+  images: Array<{
+    url: string;
+    height: number;
+    width: number;
+  }>;
+  external_urls: {
+    spotify: string;
+  };
+  show: {
+    id: string;
+    name: string;
+  };
+}
+
+/**
+ * 再生履歴付きポッドキャストの型定義
+ */
+interface PodcastWithPlayedAt extends SpotifyEpisode {
+  played_at: string;
+}
+
+/**
+ * Spotifyトラックがエピソードかどうかをチェックする型ガード関数
+ * @param track 検証するトラック
+ * @returns エピソードの場合true
+ */
+function isEpisodeTrack(track: unknown): track is SpotifyEpisode {
+  if (!track || typeof track !== "object") return false;
+  const potentialEpisode = track as Partial<SpotifyEpisode>;
+  return (
+    potentialEpisode.type === "episode" &&
+    typeof potentialEpisode.id === "string" &&
+    typeof potentialEpisode.name === "string" &&
+    typeof potentialEpisode.description === "string" &&
+    typeof potentialEpisode.duration_ms === "number" &&
+    typeof potentialEpisode.release_date === "string" &&
+    Array.isArray(potentialEpisode.images) &&
+    typeof potentialEpisode.external_urls === "object" &&
+    typeof potentialEpisode.show === "object"
+  );
+}
 
 /**
  * ダッシュボードページコンポーネント
@@ -27,13 +79,33 @@ export default async function DashboardPage() {
 
   try {
     // 最近再生したポッドキャストを取得
-    const recentPodcasts = await getRecentlyPlayedPodcasts(spotifyApi);
+    const recentPodcastsResponse = await spotifyApi.getMyRecentlyPlayedTracks({
+      limit: 50,
+    });
+
+    const recentPodcasts = recentPodcastsResponse.body.items
+      .filter((item) => isEpisodeTrack(item.track))
+      .map((item): PodcastWithPlayedAt => {
+        const track = item.track as unknown as SpotifyEpisode;
+        return {
+          id: track.id,
+          name: track.name,
+          type: track.type,
+          description: track.description,
+          duration_ms: track.duration_ms,
+          release_date: track.release_date,
+          images: track.images,
+          external_urls: track.external_urls,
+          show: track.show,
+          played_at: item.played_at,
+        };
+      });
 
     // データベースから要約情報を取得
     const summaries = await prisma.podcastEpisode.findMany({
       where: {
         id: {
-          in: recentPodcasts.map((podcast) => podcast.track.id),
+          in: recentPodcasts.map((podcast) => podcast.id),
         },
       },
       include: {

@@ -8,6 +8,22 @@
 import SpotifyWebApi from "spotify-web-api-node";
 
 /**
+ * Spotifyトラックがエピソードかどうかをチェックする型ガード関数
+ * @param track 検証するトラック
+ * @returns エピソードの場合true
+ */
+function isEpisodeTrack(track: unknown): track is SpotifyApi.EpisodeObject {
+  if (!track || typeof track !== "object") return false;
+  const potentialEpisode = track as Partial<SpotifyApi.EpisodeObject>;
+  return (
+    potentialEpisode.type === "episode" &&
+    typeof potentialEpisode.id === "string" &&
+    typeof potentialEpisode.name === "string" &&
+    typeof potentialEpisode.description === "string"
+  );
+}
+
+/**
  * Spotifyクライアントのインスタンスを作成します
  * @param accessToken - Spotifyのアクセストークン
  * @returns SpotifyWebApiのインスタンス
@@ -29,23 +45,19 @@ export const createSpotifyClient = (accessToken?: string) => {
 /**
  * 最近再生したポッドキャストエピソードを取得します
  * @param spotifyApi - SpotifyWebApiのインスタンス
- * @param limit - 取得する件数（デフォルト: 50）
- * @returns 最近再生したポッドキャストエピソードの配列
+ * @returns 最近再生したエピソード情報の配列
  */
-export const getRecentlyPlayedPodcasts = async (
-  spotifyApi: SpotifyWebApi,
-  limit = 50,
-) => {
+export const getRecentlyPlayedPodcasts = async (spotifyApi: SpotifyWebApi) => {
   const response = await spotifyApi.getMyRecentlyPlayedTracks({
-    limit,
+    limit: 50,
   });
 
-  // ポッドキャストエピソードのみをフィルタリング
-  const podcastEpisodes = response.body.items.filter(
-    (item) => item.track.type === "episode",
-  );
-
-  return podcastEpisodes;
+  return response.body.items
+    .filter((item) => isEpisodeTrack(item.track))
+    .map((item) => ({
+      ...item.track,
+      played_at: item.played_at,
+    }));
 };
 
 /**
