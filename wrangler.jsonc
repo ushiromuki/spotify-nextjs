@@ -18,11 +18,23 @@
       "database_id": "561b4ca1-995e-486a-b254-7e0f030d34b2"
     }
   ],
-  "vars": {
-    "SPOTIFY_CLIENT_ID": "472b0f470a6b4f2fb7dc62d2e24e0286",
-    "NEXTAUTH_URL": "https://spotify-nextjs.pages.dev",
-    "SPOTIFY_REDIRECT_URI": "https://spotify-nextjs.pages.dev/api/auth/callback/spotify"
+  "env": {
+    "dev": {
+      "vars": {
+        "SPOTIFY_CLIENT_ID": "472b0f470a6b4f2fb7dc62d2e24e0286",
+        "NEXTAUTH_URL": "http://localhost:3000",
+        "SPOTIFY_REDIRECT_URI": "http://localhost:3000/api/auth/callback/spotify"
+      }
+    },
+   "prod": {
+      "vars": {
+        "SPOTIFY_CLIENT_ID": "472b0f470a6b4f2fb7dc62d2e24e0286",
+        "NEXTAUTH_URL": "https://spotify-nextjs.pages.dev",
+        "SPOTIFY_REDIRECT_URI": "https://spotify-nextjs.pages.dev/api/auth/callback/spotify"
+      }
+    }
   }
+  
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

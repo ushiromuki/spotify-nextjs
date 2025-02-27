@@ -7,12 +7,14 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-if (!process.env.GEMINI_API_KEY) {
-  throw new Error("GEMINI_API_KEY is not defined");
-}
+// APIキーの有無をチェック（開発環境では省略可能）
+const hasApiKey = !!process.env.GEMINI_API_KEY;
+let genAI: GoogleGenerativeAI | null = null;
 
-// Gemini APIのインスタンスを作成
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// APIキーがある場合のみGemini APIのインスタンスを作成
+if (hasApiKey) {
+  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+}
 
 /**
  * ポッドキャストの内容を要約します
@@ -21,7 +23,27 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
  */
 export const generatePodcastSummary = async (text: string): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // APIキーがない場合は開発用のダミーレスポンスを返す
+    if (!hasApiKey) {
+      console.warn("GEMINI_API_KEY is not defined. Using mock response.");
+      return `
+## 開発環境用のダミー要約
+
+1. 概要
+このポッドキャストは開発環境でのテスト用ダミーデータです。
+
+2. 主要なポイント
+- APIキーが設定されていないため、実際の要約は生成されていません
+- 本番環境では.envファイルにGEMINI_API_KEYを設定してください
+- これはテスト用の表示です
+
+3. 詳細な内容
+開発環境ではGemini APIを使用せずにダミーデータを表示しています。実際のAPIを使用するには、.envファイルにGEMINI_API_KEYを設定してください。この要約はテスト用に静的に生成されたものであり、入力テキストの内容は反映されていません。
+`;
+    }
+
+    // APIキーがある場合は実際にAPIを呼び出す
+    const model = genAI!.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `
 以下のポッドキャストの内容を要約してください。

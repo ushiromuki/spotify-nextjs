@@ -31,6 +31,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.SPOTIFY_CLIENT_ID ?? "",
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET ?? "",
       authorization: {
+        url: "https://accounts.spotify.com/authorize",
         params: {
           scope: scopes,
         },
@@ -38,30 +39,93 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
+    async session({ session, token }) {
       // セッションにユーザーIDを追加
-      session.user.id = user.id;
+      if (session.user) {
+        session.user.id = token.sub;
 
-      // Spotifyのアクセストークンを取得
-      const account = await prisma.account.findFirst({
-        where: {
-          userId: user.id,
-          provider: "spotify",
-        },
-      });
+        // Spotifyのアクセストークンを取得
+        const account = await prisma.account.findFirst({
+          where: {
+            userId: token.sub,
+            provider: "spotify",
+          },
+        });
 
-      if (account) {
-        session.accessToken = account.access_token ?? undefined;
-        session.refreshToken = account.refresh_token ?? undefined;
+        if (account) {
+          session.accessToken = account.access_token ?? undefined;
+          session.refreshToken = account.refresh_token ?? undefined;
+          session.expires = account.expires_at ? account.expires_at * 1000 : undefined;
+        }
       }
 
       return session;
     },
-    async jwt({ token, account }) {
-      if (account) {
+    async jwt({ token, account, user }) {
+      // 初回ログイン時にアカウント情報をトークンに追加
+      if (account && user) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
+        token.expires = account.expires_at ? account.expires_at * 1000 : undefined;
+        token.user = user;
       }
+
+      // アクセストークンの有効期限をチェック
+      const now = Date.now();
+      if (token.expires && now > token.expires) {
+        console.log("Token expired, attempting to refresh...");
+        try {
+          // トークンを更新
+          const response = await fetch("https://accounts.spotify.com/api/token", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              Authorization: `Basic ${Buffer.from(
+                `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+              ).toString("base64")}`,
+            },
+            body: new URLSearchParams({
+              grant_type: "refresh_token",
+              refresh_token: token.refreshToken as string,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(`Failed to refresh token: ${data.error}`);
+          }
+
+          console.log("Token refreshed successfully");
+
+          // トークンを更新
+          token.accessToken = data.access_token;
+          token.expires = Date.now() + data.expires_in * 1000;
+
+          // データベースのアカウント情報も更新
+          if (token.sub) {
+            await prisma.account.update({
+              where: {
+                provider_providerAccountId: {
+                  provider: "spotify",
+                  providerAccountId: token.sub,
+                },
+              },
+              data: {
+                access_token: data.access_token,
+                expires_at: Math.floor(Date.now() / 1000 + data.expires_in),
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Error refreshing token:", error);
+          // エラーが発生した場合は、トークンをクリア
+          delete token.accessToken;
+          delete token.refreshToken;
+          delete token.expires;
+        }
+      }
+
       return token;
     },
   },
@@ -71,5 +135,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "your-development-secret-key",
 });

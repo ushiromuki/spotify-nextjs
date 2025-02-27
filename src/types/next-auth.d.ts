@@ -30,5 +30,12 @@ declare module "next-auth/jwt" {
     refreshToken?: string;
     expires?: number;
     error?: string;
+    user?: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      spotifyId?: string;
+    };
   }
 }
