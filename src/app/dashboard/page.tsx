@@ -114,20 +114,20 @@ export default async function DashboardPage() {
     const session = await auth();
 
     if (!session) {
-      // 未認証の場合はログインページにリダイレクト
-      redirect("/login");
+      // 未認証の場合はトップページにリダイレクト
+      redirect("/");
     }
 
     // アクセストークンがない場合はエラーメッセージを表示
     if (!session.accessToken) {
       console.log("No access token found");
-      errorMessage = "Spotifyのアクセストークンが見つかりません。再度ログインしてください。";
+      errorMessage = "Spotifyのアクセストークンが見つかりません。トップページからログインしてください。";
       authError = true;
     } else {
       // トークンの有効期限をチェック（リダイレクトではなくエラーメッセージを表示）
       if (session.expires && Date.now() > session.expires) {
         console.log("Session token expired");
-        errorMessage = "Spotifyのセッションが期限切れです。再度ログインしてください。";
+        errorMessage = "Spotifyのセッションが期限切れです。トップページからログインしてください。";
         authError = true;
       } else {
         // Spotifyクライアントの作成
@@ -172,7 +172,7 @@ export default async function DashboardPage() {
             error.message.includes("authentication")
           )) {
             console.log("Token error detected");
-            errorMessage = "Spotifyの認証に問題があります。再度ログインしてください。";
+            errorMessage = "Spotifyの認証に問題があります。トップページからログインしてください。";
             authError = true;
           } else {
             // その他のエラーの場合はエラーメッセージを設定
@@ -206,8 +206,8 @@ export default async function DashboardPage() {
                 <p className={`text-sm ${authError ? 'text-red-700' : 'text-yellow-700'}`}>{errorMessage}</p>
                 {authError && (
                   <div className="mt-2">
-                    <Link href="/login" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                      ログインページへ
+                    <Link href="/" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      トップページへ
                     </Link>
                   </div>
                 )}
